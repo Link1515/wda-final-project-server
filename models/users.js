@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { isEmail } from 'validator'
+import validator from 'validator'
 import md5 from 'md5'
 
 const userSchema = new mongoose.Schema({
@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     validate: {
       validator (value) {
-        return isEmail(value)
+        return validator.isEmail(value)
       },
       message: '信箱格式不正確'
     }
