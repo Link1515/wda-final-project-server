@@ -33,6 +33,17 @@ const userSchema = new mongoose.Schema({
   },
   tokens: {
     type: [String]
+  },
+  favoriteGame: {
+    type: [
+      {
+        gameId: {
+          type: mongoose.ObjectId,
+          ref: 'game',
+          required: [true, '缺少 game id']
+        }
+      }
+    ]
   }
 }, { versionKey: false })
 

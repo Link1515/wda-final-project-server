@@ -19,8 +19,10 @@ export default async (req, res, next) => {
       throw new Error('未傳入 JWT')
     }
   } catch (error) {
-    console.log(error)
-    if (error.name === 'TokenExpiredError' && req.baseUrl === '/users' && req.path === '/extend') next()
-    res.status(401).send({ message: '驗證錯誤' })
+    if (error.name === 'TokenExpiredError' && req.baseUrl === '/users' && req.path === '/extend') {
+      next()
+    } else {
+      res.status(401).send({ message: '驗證錯誤' })
+    }
   }
 }
