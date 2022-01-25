@@ -37,6 +37,6 @@ app.all('*', (req, res) => {
   res.status(404).send({ success: false, message: '找不到' })
 })
 
-app.listen(3001, () => {
+app.listen(process.env.PORT || 3001, () => {
   console.log('server is running')
 })

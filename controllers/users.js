@@ -74,3 +74,13 @@ export const logout = async (req, res) => {
     res.status(500).send({ success: false, message: '伺服器錯誤，登出失敗' })
   }
 }
+
+export const getInfo = async (req, res) => {
+  try {
+    const result = req.user.toObject()
+    delete result.tokens
+    res.status(200).send({ success: true, message: '獲取資訊成功', result })
+  } catch (error) {
+    res.status(500).send({ success: false, message: '取得資訊失敗，伺服器錯誤' })
+  }
+}
