@@ -6,6 +6,8 @@ import {
   logout,
   getInfo
 } from '../controllers/users.js'
+
+// middleware
 import content from '../middleware/content.js'
 import auth from '../middleware/auth.js'
 

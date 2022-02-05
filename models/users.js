@@ -31,9 +31,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'user'
   },
-  tokens: {
-    type: [String]
-  },
+  tokens: [String],
   favoriteGame: {
     type: [
       {
