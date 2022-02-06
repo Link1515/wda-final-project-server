@@ -5,12 +5,16 @@ const gameSchema = new mongoose.Schema({
     type: String,
     required: [true, '桌遊名稱不能為空']
   },
+  description: String,
+  image: {
+    type: String,
+    default: ''
+  },
   author: {
     type: mongoose.ObjectId,
     required: [true, '作者不能為空']
   },
-  description: String,
-  playerRange: [Number],
+  playerRange: Array,
   goodCompRoleList: Array,
   badCompRoleList: Array,
   enableFunRole: Boolean,

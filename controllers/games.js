@@ -2,7 +2,13 @@ import games from '../models/games.js'
 
 export async function create (req, res) {
   try {
-    await games.create({ ...req.body, author: req.user._id })
+    console.log(req.body)
+    for (const key in req.body) {
+      if (key.includes('List') || key === 'playerRange') {
+        req.body[key] = JSON.parse(req.body[key])
+      }
+    }
+    await games.create({ ...req.body, author: req.user._id, image: req.file?.path })
     res.status(200).send({ success: true, message: '成功創建桌遊' })
   } catch (error) {
     console.log(error)
