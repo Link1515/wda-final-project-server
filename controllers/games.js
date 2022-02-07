@@ -2,7 +2,6 @@ import games from '../models/games.js'
 
 export async function create (req, res) {
   try {
-    console.log(req.body)
     for (const key in req.body) {
       if (key.includes('List') || key === 'playerRange') {
         req.body[key] = JSON.parse(req.body[key])
@@ -11,7 +10,6 @@ export async function create (req, res) {
     await games.create({ ...req.body, author: req.user._id, image: req.file?.path })
     res.status(200).send({ success: true, message: '成功創建桌遊' })
   } catch (error) {
-    console.log(error)
     if (error.name === 'ValidationError') {
       const message = []
       for (const key in error.errors) {
@@ -21,5 +19,41 @@ export async function create (req, res) {
     } else {
       res.status(500).send({ success: false, message: '伺服器錯誤' })
     }
+  }
+}
+
+export async function getUserMadeGames (req, res) {
+  try {
+    const result = await games.find({ author: req.user._id }, 'name image')
+    res.status(200).send({ success: true, message: '', result })
+  } catch (error) {
+    res.status(500).send({ success: true, message: '伺服器錯誤' })
+  }
+}
+
+export async function getOneGame (req, res) {
+  try {
+    const result = await games.findOne({ _id: req.body.gameId })
+    res.status(200).send({ success: true, message: '', result })
+  } catch (error) {
+    res.status(500).send({ success: false, message: '伺服器錯誤' })
+  }
+}
+
+export async function updateOneGame (req, res) {
+  try {
+    for (const key in req.body) {
+      if (key.includes('List') || key === 'playerRange') {
+        req.body[key] = JSON.parse(req.body[key])
+      }
+    }
+
+    if (!req.body.image) {
+      delete req.body.image
+    }
+    await games.findByIdAndUpdate(req.body._id, req.body, { runValidators: true })
+    res.status(200).send({ success: true, message: '' })
+  } catch (error) {
+    console.log(error)
   }
 }
