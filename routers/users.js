@@ -4,7 +4,9 @@ import {
   register,
   extend,
   logout,
-  getInfo
+  getInfo,
+  addFavGame,
+  removeFavGame
 } from '../controllers/users.js'
 
 // middleware
@@ -18,5 +20,7 @@ router.post('/login', login)
 router.post('/extend', auth, extend)
 router.get('/getInfo', auth, getInfo)
 router.delete('/logout', auth, logout)
+router.post('/addFavGame/:gameId', auth, addFavGame)
+router.post('/removeFavGame/:gameId', auth, removeFavGame)
 
 export default router

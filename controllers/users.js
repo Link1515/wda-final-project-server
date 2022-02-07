@@ -84,3 +84,24 @@ export const getInfo = async (req, res) => {
     res.status(500).send({ success: false, message: '取得資訊失敗，伺服器錯誤' })
   }
 }
+
+export const addFavGame = async (req, res) => {
+  try {
+    req.user.favoriteGame.push({ game: req.params.gameId })
+    await req.user.save()
+    res.status(200).send({ success: true, message: '', result: req.user.favoriteGame })
+  } catch (error) {
+    console.log(error)
+    res.status(500).send({ success: false, message: '伺服器錯誤' })
+  }
+}
+
+export const removeFavGame = async (req, res) => {
+  try {
+    req.user.favoriteGame = req.user.favoriteGame.filter(fav => fav.game.toString() !== req.params.gameId.toString())
+    await req.user.save()
+    res.status(200).send({ success: true, message: '', result: req.user.favoriteGame })
+  } catch (error) {
+    res.status(500).send({ success: false, message: '伺服器錯誤' })
+  }
+}

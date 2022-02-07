@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
   favoriteGame: {
     type: [
       {
-        gameId: {
+        game: {
           type: mongoose.ObjectId,
           ref: 'game',
           required: [true, '缺少 game id']
