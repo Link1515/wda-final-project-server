@@ -1,5 +1,13 @@
 import games from '../models/games.js'
 
+export async function getGames (req, res) {
+  try {
+    const result = await games.find({}).sort({ _id: -1 }).limit(10).skip(10 * (req.query.page - 1))
+    res.status(200).send({ success: true, message: '', result })
+  } catch (error) {
+  }
+}
+
 export async function create (req, res) {
   try {
     for (const key in req.body) {
@@ -42,6 +50,9 @@ export async function getOneGame (req, res) {
 
 export async function updateOneGame (req, res) {
   try {
+    const game = await games.findById(req.body._id)
+    if (game.author.toString() !== req.user._id.toString()) throw new Error('author edit only')
+
     for (const key in req.body) {
       if (key.includes('List') || key === 'playerRange') {
         req.body[key] = JSON.parse(req.body[key])
@@ -51,9 +62,14 @@ export async function updateOneGame (req, res) {
     if (!req.body.image) {
       delete req.body.image
     }
+
     await games.findByIdAndUpdate(req.body._id, req.body, { runValidators: true })
+
     res.status(200).send({ success: true, message: '' })
   } catch (error) {
     console.log(error)
+    if (error.message === 'author edit only') {
+      res.status(400).send({ success: false, message: '只有作者可以修改' })
+    }
   }
 }

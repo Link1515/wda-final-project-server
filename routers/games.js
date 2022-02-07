@@ -1,5 +1,6 @@
 import express from 'express'
 import {
+  getGames,
   create,
   getUserMadeGames,
   getOneGame,
@@ -12,9 +13,10 @@ import upload from '../middleware/upload.js'
 
 const Router = new express.Router()
 
+Router.get('/', getGames)
 Router.post('/create', content('multipart/form-data'), auth, upload, create)
 Router.get('/getUserMadeGames', auth, getUserMadeGames)
-Router.post('/getOneGame', auth, getOneGame)
-Router.patch('/update/:id', content('multipart/form-data'), auth, upload, updateOneGame)
+Router.post('/getOneGame', getOneGame)
+Router.patch('/update', content('multipart/form-data'), auth, upload, updateOneGame)
 
 export default Router
