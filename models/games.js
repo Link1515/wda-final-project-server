@@ -15,8 +15,8 @@ const gameSchema = new mongoose.Schema({
     required: [true, '作者不能為空']
   },
   playerRange: Array,
-  goodCompRoleList: Array,
-  badCompRoleList: Array,
+  goodCampRoleList: Array,
+  badCampRoleList: Array,
   enableFunRole: Boolean,
   funRoleList: Array,
   stepList: Array,
