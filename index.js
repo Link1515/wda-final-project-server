@@ -2,6 +2,8 @@ import 'dotenv/config'
 import express from 'express'
 import mongoose from 'mongoose'
 import cors from 'cors'
+import { Server } from 'socket.io'
+import { createServer } from 'http'
 
 // router
 import userRouter from './routers/users.js'
@@ -12,6 +14,27 @@ mongoose.connect(process.env.DB_URL, () => {
 })
 
 const app = express()
+const httpServer = createServer(app)
+const io = new Server(httpServer, {
+  cors: {
+    origin (origin, callback) {
+      if (origin === undefined || origin.includes('github') || origin.includes('localhost')) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'), false)
+      }
+    },
+    credentials: true
+  },
+  allowEIO3: true
+})
+
+io.on('connection', socket => {
+  socket.on('joinRoom', (roomId) => {
+    socket.join(roomId)
+    console.log(socket.rooms)
+  })
+})
 
 app.use(cors({
   origin (origin, callback) {
@@ -39,6 +62,6 @@ app.all('*', (req, res) => {
   res.status(404).send({ success: false, message: '找不到' })
 })
 
-app.listen(process.env.PORT || 3001, () => {
+httpServer.listen(process.env.PORT || 3001, () => {
   console.log('server is running')
 })
