@@ -39,7 +39,8 @@ const userSchema = new mongoose.Schema({
           type: mongoose.ObjectId,
           ref: 'game',
           required: [true, '缺少 game id']
-        }
+        },
+        name: String
       }
     ]
   }

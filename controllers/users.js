@@ -87,7 +87,7 @@ export const getInfo = async (req, res) => {
 
 export const addFavGame = async (req, res) => {
   try {
-    req.user.favoriteGame.push({ game: req.params.gameId })
+    req.user.favoriteGame.push({ game: req.params.gameId, name: req.body.gameName })
     await req.user.save()
     res.status(200).send({ success: true, message: '', result: req.user.favoriteGame })
   } catch (error) {
