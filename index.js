@@ -4,8 +4,9 @@ import mongoose from 'mongoose'
 import cors from 'cors'
 import { Server } from 'socket.io'
 import { createServer } from 'http'
+import socketfun from './socketControllers/socket.js'
 
-// router
+// express router
 import userRouter from './routers/users.js'
 import gameRouter from './routers/games.js'
 
@@ -29,12 +30,7 @@ const io = new Server(httpServer, {
   allowEIO3: true
 })
 
-io.on('connection', socket => {
-  socket.on('joinRoom', (roomId) => {
-    socket.join(roomId)
-    console.log(socket.rooms)
-  })
-})
+io.on('connection', socketfun(io))
 
 app.use(cors({
   origin (origin, callback) {
