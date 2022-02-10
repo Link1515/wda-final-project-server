@@ -2,7 +2,7 @@ import games from '../models/games.js'
 
 export async function getGames (req, res) {
   try {
-    const result = await games.find({}).sort({ _id: -1 }).limit(10).skip(10 * (req.query.page - 1))
+    const result = await games.find({}, 'name image').sort({ _id: -1 }).limit(10).skip(10 * (req.query.page - 1))
     res.status(200).send({ success: true, message: '', result })
   } catch (error) {
     res.status(500).send({ success: false, message: '伺服器錯誤' })
