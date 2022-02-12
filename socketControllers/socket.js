@@ -49,7 +49,7 @@ export default (io) => {
       }
 
       for (const player of currentRoom.playerList) {
-        if (playerId === player.playerId) {
+        if (playerId === player.playerId && playerId !== '') {
           socket.emit('error', '帳戶於其他瀏覽器使用中')
           return
         }
@@ -61,6 +61,7 @@ export default (io) => {
       socket.emit('joinRoomSuccess', { roomId, playerAmount })
       currentRoom.playerList.push({ role: 0, socketId: socket.id, playerId, name: playerName, ready: false })
       io.to(roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(roomId).size, playerList: currentRoom.playerList })
+      socket.to(roomId).emit('roomAnnouncement', `${playerName} 加入遊戲間`)
     })
 
     socket.on('toggleReady', () => {
@@ -78,13 +79,12 @@ export default (io) => {
         const currentRoom = activeRooms.filter(room => room.roomId === socket.roomId)[0]
         const leavingPlayer = currentRoom.playerList.filter(player => player.socketId === socket.id)[0]
 
-        if (leavingPlayer.role === 1) {
-          currentRoom.playerList[1].role = 1
-        }
-
         currentRoom.playerList = currentRoom.playerList.filter(player => player.socketId !== socket.id)
 
         if (io.sockets.adapter.rooms.get(socket.roomId)) {
+          if (leavingPlayer.role === 1) {
+            currentRoom.playerList[0].role = 1
+          }
           io.to(socket.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.roomId).size, playerList: currentRoom.playerList })
         } else {
           activeRooms = activeRooms.filter(room => room.roomId !== socket.roomId)
