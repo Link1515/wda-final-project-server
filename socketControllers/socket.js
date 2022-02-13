@@ -1,4 +1,5 @@
 import { customAlphabet } from 'nanoid'
+import games from '../models/games.js'
 
 const nanoid = customAlphabet('0123456789', 6)
 let activeRooms = []
@@ -7,22 +8,25 @@ export default (io) => {
   return (socket) => {
     console.log('連線' + socket.id)
 
-    socket.on('createRoom', ({ playerId, playerName, playerAmount, gameId }) => {
+    socket.on('createRoom', async ({ playerId, playerName, playerAmount, gameId }) => {
       const roomId = nanoid()
 
       socket.roomId = roomId
 
       socket.join(roomId)
 
+      const gameInfo = await games.findById(gameId)
       const creatorInfo = { role: 1, socketId: socket.id, playerId, name: playerName, ready: false }
       activeRooms.push({
         roomId,
         playerAmount,
         gameId,
+        gameInfo,
         playerList: [creatorInfo]
       })
-      socket.emit('joinRoomSuccess', { roomId, playerAmount })
+      socket.emit('joinRoomSuccess', { roomId, gameInfo, playerAmount })
       socket.emit('updateRoomData', { joinedPlayerAmount: 1, playerList: [creatorInfo] })
+      console.log(activeRooms)
     })
 
     socket.on('joinRoom', ({ playerId, playerName, roomId }) => {
@@ -58,7 +62,7 @@ export default (io) => {
       socket.roomId = roomId
 
       socket.join(roomId)
-      socket.emit('joinRoomSuccess', { roomId, playerAmount })
+      socket.emit('joinRoomSuccess', { roomId, gameInfo: currentRoom.gameInfo, playerAmount })
       currentRoom.playerList.push({ role: 0, socketId: socket.id, playerId, name: playerName, ready: false })
       io.to(roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(roomId).size, playerList: currentRoom.playerList })
       socket.to(roomId).emit('roomAnnouncement', `${playerName} 加入遊戲間`)
