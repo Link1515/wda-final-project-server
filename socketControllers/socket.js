@@ -26,7 +26,6 @@ export default (io) => {
       })
       socket.emit('joinRoomSuccess', { roomId, gameInfo, playerAmount })
       socket.emit('updateRoomData', { joinedPlayerAmount: 1, playerList: [creatorInfo] })
-      console.log(activeRooms)
     })
 
     socket.on('joinRoom', ({ playerId, playerName, roomId }) => {
@@ -68,12 +67,22 @@ export default (io) => {
       socket.to(roomId).emit('roomAnnouncement', `${playerName} 加入遊戲間`)
     })
 
-    socket.on('toggleReady', () => {
+    socket.on('toggleReady', ({ camp, campRole, funRole }) => {
       const currentRoom = activeRooms.filter(room => room.roomId === socket.roomId)[0]
       if (currentRoom) {
         const playerIndex = currentRoom.playerList.findIndex(player => player.socketId === socket.id)
 
         currentRoom.playerList[playerIndex].ready = !currentRoom.playerList[playerIndex].ready
+
+        if (currentRoom.playerList[playerIndex].ready) {
+          currentRoom.playerList[playerIndex].camp = camp
+          currentRoom.playerList[playerIndex].campRole = campRole
+          if (currentRoom.gameInfo.enableFunRole) {
+            currentRoom.playerList[playerIndex].funRole = funRole
+          }
+          console.log(currentRoom)
+        }
+
         io.to(socket.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.roomId).size, playerList: currentRoom.playerList })
       }
     })
