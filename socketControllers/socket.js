@@ -11,8 +11,6 @@ export default (io) => {
     socket.on('createRoom', async ({ playerId, playerName, playerAmount, gameId }) => {
       const roomId = nanoid()
 
-      socket.roomId = roomId
-
       socket.join(roomId)
 
       const gameInfo = await games.findById(gameId)
@@ -24,6 +22,9 @@ export default (io) => {
         gameInfo,
         playerList: [creatorInfo]
       })
+      socket.currentRoom = activeRooms.at(-1)
+      socket.playerInfo = socket.currentRoom.playerList[0]
+
       socket.emit('joinRoomSuccess', { roomId, gameInfo, playerAmount })
       socket.emit('updateRoomData', { joinedPlayerAmount: 1, playerList: [creatorInfo] })
     })
@@ -31,12 +32,11 @@ export default (io) => {
     socket.on('joinRoom', ({ playerId, playerName, roomId }) => {
       let playerAmount = ''
       let hasRoom = false
-      let currentRoom = {}
       for (const room of activeRooms) {
         if (room.roomId === roomId) {
           playerAmount = room.playerAmount
           hasRoom = true
-          currentRoom = room
+          socket.currentRoom = room
           break
         }
       }
@@ -51,56 +51,51 @@ export default (io) => {
         return
       }
 
-      for (const player of currentRoom.playerList) {
+      for (const player of socket.currentRoom.playerList) {
         if (playerId === player.playerId && playerId !== '') {
           socket.emit('error', '帳戶於其他瀏覽器使用中')
           return
         }
       }
 
-      socket.roomId = roomId
-
+      socket.currentRoom.playerList.push({ role: 0, socketId: socket.id, playerId, name: playerName, ready: false })
+      socket.playerInfo = socket.currentRoom.playerList.at(-1)
       socket.join(roomId)
-      socket.emit('joinRoomSuccess', { roomId, gameInfo: currentRoom.gameInfo, playerAmount })
-      currentRoom.playerList.push({ role: 0, socketId: socket.id, playerId, name: playerName, ready: false })
-      io.to(roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(roomId).size, playerList: currentRoom.playerList })
+
+      socket.emit('joinRoomSuccess', { roomId, gameInfo: socket.currentRoom.gameInfo, playerAmount })
+      io.to(roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(roomId).size, playerList: socket.currentRoom.playerList })
       socket.to(roomId).emit('roomAnnouncement', `${playerName} 加入遊戲間`)
     })
 
     socket.on('toggleReady', ({ camp, campRole, funRole }) => {
-      const currentRoom = activeRooms.filter(room => room.roomId === socket.roomId)[0]
-      if (currentRoom) {
-        const playerIndex = currentRoom.playerList.findIndex(player => player.socketId === socket.id)
-
-        currentRoom.playerList[playerIndex].ready = !currentRoom.playerList[playerIndex].ready
-
-        if (currentRoom.playerList[playerIndex].ready) {
-          currentRoom.playerList[playerIndex].camp = camp
-          currentRoom.playerList[playerIndex].campRole = campRole
-          if (currentRoom.gameInfo.enableFunRole) {
-            currentRoom.playerList[playerIndex].funRole = funRole
-          }
-          console.log(currentRoom)
+      socket.playerInfo.ready = !socket.playerInfo.ready
+      if (socket.playerInfo.ready) {
+        socket.playerInfo.camp = camp
+        socket.playerInfo.campRole = campRole
+        if (socket.currentRoom.gameInfo.enableFunRole) {
+          socket.playerInfo.funRole = funRole
         }
-
-        io.to(socket.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.roomId).size, playerList: currentRoom.playerList })
       }
+
+      io.to(socket.currentRoom.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.currentRoom.roomId).size, playerList: socket.currentRoom.playerList })
+    })
+
+    // 流程開始
+    socket.on('runStep', () => {
+      io.to(socket.currentRoom.roomId).emit('runStep')
     })
 
     socket.on('disconnect', () => {
-      if (socket.roomId) {
-        const currentRoom = activeRooms.filter(room => room.roomId === socket.roomId)[0]
-        const leavingPlayer = currentRoom.playerList.filter(player => player.socketId === socket.id)[0]
+      if (socket.currentRoom) {
+        socket.currentRoom.playerList = socket.currentRoom.playerList.filter(player => player.socketId !== socket.id)
 
-        currentRoom.playerList = currentRoom.playerList.filter(player => player.socketId !== socket.id)
-
-        if (io.sockets.adapter.rooms.get(socket.roomId)) {
-          if (leavingPlayer.role === 1) {
-            currentRoom.playerList[0].role = 1
+        if (io.sockets.adapter.rooms.get(socket.currentRoom.roomId)) {
+          if (socket.playerInfo.role === 1) {
+            socket.currentRoom.playerList[0].role = 1
           }
-          io.to(socket.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.roomId).size, playerList: currentRoom.playerList })
+          io.to(socket.currentRoom.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.currentRoom.roomId).size, playerList: socket.currentRoom.playerList })
         } else {
-          activeRooms = activeRooms.filter(room => room.roomId !== socket.roomId)
+          activeRooms = activeRooms.filter(room => room.roomId !== socket.currentRoom.roomId)
         }
       }
 
