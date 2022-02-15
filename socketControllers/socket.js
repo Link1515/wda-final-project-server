@@ -14,12 +14,20 @@ export default (io) => {
       socket.join(roomId)
 
       const gameInfo = await games.findById(gameId)
-      const creatorInfo = { role: 1, socketId: socket.id, playerId, name: playerName, ready: false }
+      const creatorInfo = {
+        role: 1,
+        socketId: socket.id,
+        playerId,
+        name: playerName,
+        ready: false,
+        stepDone: false
+      }
       activeRooms.push({
         roomId,
         playerAmount,
         gameId,
         gameInfo,
+        gameStep: 0,
         playerList: [creatorInfo]
       })
       socket.currentRoom = activeRooms.at(-1)
@@ -58,7 +66,14 @@ export default (io) => {
         }
       }
 
-      socket.currentRoom.playerList.push({ role: 0, socketId: socket.id, playerId, name: playerName, ready: false })
+      socket.currentRoom.playerList.push({
+        role: 0,
+        socketId: socket.id,
+        playerId,
+        name: playerName,
+        ready: false,
+        stepDone: false
+      })
       socket.playerInfo = socket.currentRoom.playerList.at(-1)
       socket.join(roomId)
 
@@ -67,13 +82,13 @@ export default (io) => {
       socket.to(roomId).emit('roomAnnouncement', `${playerName} 加入遊戲間`)
     })
 
-    socket.on('toggleReady', ({ camp, campRole, funRole }) => {
+    socket.on('toggleReady', ({ camp, campRoleId, funRoleId }) => {
       socket.playerInfo.ready = !socket.playerInfo.ready
       if (socket.playerInfo.ready) {
         socket.playerInfo.camp = camp
-        socket.playerInfo.campRole = campRole
+        socket.playerInfo.campRoleId = campRoleId
         if (socket.currentRoom.gameInfo.enableFunRole) {
-          socket.playerInfo.funRole = funRole
+          socket.playerInfo.funRoleId = funRoleId
         }
       }
 
@@ -82,7 +97,38 @@ export default (io) => {
 
     // 流程開始
     socket.on('runStep', () => {
-      io.to(socket.currentRoom.roomId).emit('runStep')
+      socket.currentRoom.gameStep = 0
+      io.to(socket.currentRoom.roomId).emit('runStep', socket.currentRoom.gameStep)
+      socket.currentRoom.gameStep++
+    })
+
+    socket.on('stepDone', () => {
+      if (socket.currentRoom.gameStep < 0) return
+
+      socket.playerInfo.stepDone = true
+      let allPlayerStepDone = true
+      for (const player of socket.currentRoom.playerList) {
+        if (!player.stepDone) {
+          allPlayerStepDone = false
+          break
+        }
+      }
+
+      if (allPlayerStepDone) {
+        if (socket.currentRoom.gameStep === socket.currentRoom.gameInfo.stepList.length) {
+          socket.currentRoom.gameStep = 0
+        } else {
+          io.to(socket.currentRoom.roomId).emit('runStep', socket.currentRoom.gameStep)
+          socket.currentRoom.gameStep++
+          for (const player of socket.currentRoom.playerList) {
+            player.stepDone = false
+          }
+        }
+      }
+    })
+
+    socket.on('resetStep', () => {
+      socket.currentRoom.gameStep = -1
     })
 
     socket.on('disconnect', () => {
