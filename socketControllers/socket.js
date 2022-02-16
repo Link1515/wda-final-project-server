@@ -96,7 +96,7 @@ export default (io) => {
     })
 
     // 流程開始
-    socket.on('runStep', () => {
+    socket.on('startStep', () => {
       socket.currentRoom.gameStep = 0
       io.to(socket.currentRoom.roomId).emit('runStep', socket.currentRoom.gameStep)
       socket.currentRoom.gameStep++
