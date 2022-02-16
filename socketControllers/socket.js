@@ -115,20 +115,23 @@ export default (io) => {
       }
 
       if (allPlayerStepDone) {
+        for (const player of socket.currentRoom.playerList) {
+          player.stepDone = false
+        }
+
         if (socket.currentRoom.gameStep === socket.currentRoom.gameInfo.stepList.length) {
           socket.currentRoom.gameStep = 0
+          io.to(socket.currentRoom.roomId).emit('resetStep')
         } else {
           io.to(socket.currentRoom.roomId).emit('runStep', socket.currentRoom.gameStep)
           socket.currentRoom.gameStep++
-          for (const player of socket.currentRoom.playerList) {
-            player.stepDone = false
-          }
         }
       }
     })
 
     socket.on('resetStep', () => {
       socket.currentRoom.gameStep = -1
+      io.to(socket.currentRoom.roomId).emit('resetStep')
     })
 
     socket.on('disconnect', () => {
