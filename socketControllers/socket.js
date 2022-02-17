@@ -28,6 +28,8 @@ export default (io) => {
         gameId,
         gameInfo,
         gameStep: 0,
+        markedPlayers: [],
+        markedResult: [],
         playerList: [creatorInfo]
       })
       socket.currentRoom = activeRooms.at(-1)
@@ -99,10 +101,9 @@ export default (io) => {
     socket.on('startStep', () => {
       socket.currentRoom.gameStep = 0
       io.to(socket.currentRoom.roomId).emit('runStep', socket.currentRoom.gameStep)
-      socket.currentRoom.gameStep++
     })
 
-    socket.on('stepDone', () => {
+    socket.on('stepDone', (showedPlayers) => {
       if (socket.currentRoom.gameStep < 0) return
 
       socket.playerInfo.stepDone = true
@@ -120,9 +121,25 @@ export default (io) => {
         }
 
         if (socket.currentRoom.gameStep === socket.currentRoom.gameInfo.stepList.length) {
-          socket.currentRoom.gameStep = 0
           io.to(socket.currentRoom.roomId).emit('resetStep')
         } else {
+          if (socket.currentRoom.gameInfo.stepList[socket.currentRoom.gameStep].mode === '標記') {
+            let result
+            if (socket.currentRoom.markedPlayers.length) {
+              const randomIndex = Math.round(Math.random() * socket.currentRoom.markedPlayers.length)
+              result = socket.currentRoom.markedPlayers[randomIndex]
+            } else {
+              const randomIndex = Math.round(Math.random() * showedPlayers.length)
+              result = showedPlayers[randomIndex]
+            }
+
+            socket.currentRoom.markedResult.push({ socketId: result, markLabel: socket.currentRoom.gameInfo.stepList[socket.currentRoom.gameStep].data.label })
+
+            socket.currentRoom.markedPlayers = []
+            io.emit('updateMarkedPlayers', socket.currentRoom.markedPlayers)
+            console.log(socket.currentRoom)
+          }
+
           io.to(socket.currentRoom.roomId).emit('runStep', socket.currentRoom.gameStep)
           socket.currentRoom.gameStep++
         }
@@ -132,6 +149,11 @@ export default (io) => {
     socket.on('resetStep', () => {
       socket.currentRoom.gameStep = -1
       io.to(socket.currentRoom.roomId).emit('resetStep')
+    })
+
+    socket.on('updateMarkedPlayers', (markedPlayers) => {
+      socket.currentRoom.markedPlayers = markedPlayers
+      io.emit('updateMarkedPlayers', socket.currentRoom.markedPlayers)
     })
 
     socket.on('disconnect', () => {
