@@ -98,6 +98,14 @@ export default (io) => {
       io.to(socket.currentRoom.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.currentRoom.roomId).size, playerList: socket.currentRoom.playerList })
     })
 
+    socket.on('start', () => {
+      io.to(socket.currentRoom.roomId).emit('start')
+    })
+
+    socket.on('backToSetting', () => {
+      io.to(socket.currentRoom.roomId).emit('backToSetting')
+    })
+
     // 流程開始
     socket.on('startStep', () => {
       socket.currentRoom.gameStep = 0
