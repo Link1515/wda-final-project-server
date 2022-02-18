@@ -8,7 +8,7 @@ export default (io) => {
   return (socket) => {
     console.log('連線' + socket.id)
 
-    socket.on('createRoom', async ({ playerId, playerName, playerAmount, gameId }) => {
+    socket.on('createRoom', async ({ playerId, playerName, avatar, playerAmount, gameId }) => {
       const roomId = nanoid()
 
       socket.join(roomId)
@@ -19,6 +19,7 @@ export default (io) => {
         socketId: socket.id,
         playerId,
         name: playerName,
+        avatar,
         ready: false,
         stepDone: false
       }
@@ -40,7 +41,7 @@ export default (io) => {
       socket.emit('updateRoomData', { joinedPlayerAmount: 1, playerList: [creatorInfo] })
     })
 
-    socket.on('joinRoom', ({ playerId, playerName, roomId }) => {
+    socket.on('joinRoom', ({ playerId, playerName, avatar, roomId }) => {
       let playerAmount = ''
       let hasRoom = false
       for (const room of activeRooms) {
@@ -74,6 +75,7 @@ export default (io) => {
         socketId: socket.id,
         playerId,
         name: playerName,
+        avatar,
         ready: false,
         stepDone: false
       })

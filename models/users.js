@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
     maxlength: [20, '密碼必須 20 個字以下']
   },
   nickname: String,
+  avatar: String,
   email: {
     type: String,
     required: [true, '信箱不得為空'],

@@ -5,6 +5,7 @@ import {
   extend,
   logout,
   editInfo,
+  updateAvatar,
   editpassword,
   getInfo,
   addFavGame,
@@ -14,6 +15,7 @@ import {
 // middleware
 import content from '../middleware/content.js'
 import auth from '../middleware/auth.js'
+import upload from '../middleware/upload.js'
 
 const router = new express.Router()
 
@@ -22,7 +24,8 @@ router.post('/login', login)
 router.post('/extend', auth, extend)
 router.get('/getInfo', auth, getInfo)
 router.delete('/logout', auth, logout)
-router.patch('/editinfo', auth, editInfo)
+router.patch('/editinfo', auth, content('multipart/form-data'), upload, editInfo)
+router.get('/updateAvatar', auth, updateAvatar)
 router.patch('/editpassword', editpassword)
 router.post('/addFavGame/:gameId', auth, addFavGame)
 router.post('/removeFavGame/:gameId', auth, removeFavGame)

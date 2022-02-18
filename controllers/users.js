@@ -78,6 +78,9 @@ export const editInfo = async (req, res) => {
   try {
     req.user.account = req.body.account
     req.user.nickname = req.body.nickname
+    if (req.file) {
+      req.user.avatar = req.file.path
+    }
     await req.user.save()
     res.status(200).send({ success: true, message: '' })
   } catch (error) {
@@ -93,6 +96,10 @@ export const editInfo = async (req, res) => {
       res.status(500).send({ success: false, message: '伺服器錯誤' })
     }
   }
+}
+
+export const updateAvatar = (req, res) => {
+  res.status(200).send({ success: true, message: '', result: req.user.avatar })
 }
 
 export const editpassword = async (req, res) => {
