@@ -9,6 +9,7 @@ import socketfun from './socketControllers/socket.js'
 // express router
 import userRouter from './routers/users.js'
 import gameRouter from './routers/games.js'
+import reportRouter from './routers/reports.js'
 
 mongoose.connect(process.env.DB_URL, () => {
   console.log('MongoDB Connected')
@@ -52,6 +53,7 @@ app.use((_, req, res, next) => {
 
 app.use('/users', userRouter)
 app.use('/games', gameRouter)
+app.use('/reports', reportRouter)
 
 app.all('*', (req, res) => {
   console.error(`${req.method} 方法沒有匹配的路徑 ${req.originalUrl}`)
