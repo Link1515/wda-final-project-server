@@ -70,8 +70,45 @@ export const logout = async (req, res) => {
     req.user.save()
     res.status(200).send({ success: true, message: '登出成功' })
   } catch (error) {
-    console.log(error)
     res.status(500).send({ success: false, message: '伺服器錯誤，登出失敗' })
+  }
+}
+
+export const editInfo = async (req, res) => {
+  try {
+    req.user.account = req.body.account
+    req.user.nickname = req.body.nickname
+    await req.user.save()
+    res.status(200).send({ success: true, message: '' })
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      const message = []
+      for (const key in error.errors) {
+        message.push(error.errors[key].message)
+      }
+      res.status(400).send({ success: false, message })
+    } else if (error.name === 'MongoServerError' && error.code === 11000) {
+      res.status(400).send({ success: false, message: '帳號已存在' })
+    } else {
+      res.status(500).send({ success: false, message: '伺服器錯誤' })
+    }
+  }
+}
+
+export const editpassword = async (req, res) => {
+  try {
+    const user = await users.findOne({ account: req.body.account, password: md5(req.body.oldPassword) })
+    console.log(user)
+    if (user) {
+      user.password = req.body.newPassword
+      await user.save()
+      res.status(200).send({ success: true, message: '' })
+    } else {
+      res.status(404).send({ success: true, message: '原密碼錯誤' })
+    }
+  } catch (error) {
+    console.log(error)
+    res.status(500).send({ success: false, message: '伺服器錯誤' })
   }
 }
 

@@ -4,6 +4,8 @@ import {
   register,
   extend,
   logout,
+  editInfo,
+  editpassword,
   getInfo,
   addFavGame,
   removeFavGame
@@ -20,6 +22,8 @@ router.post('/login', login)
 router.post('/extend', auth, extend)
 router.get('/getInfo', auth, getInfo)
 router.delete('/logout', auth, logout)
+router.patch('/editinfo', auth, editInfo)
+router.patch('/editpassword', editpassword)
 router.post('/addFavGame/:gameId', auth, addFavGame)
 router.post('/removeFavGame/:gameId', auth, removeFavGame)
 
