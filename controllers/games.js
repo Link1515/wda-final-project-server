@@ -1,6 +1,6 @@
 import games from '../models/games.js'
 
-export async function getGames (req, res) {
+export const getGames = async (req, res) => {
   try {
     const result = await games.find({}, 'name image').sort({ _id: -1 }).limit(10).skip(10 * (req.query.page - 1))
     res.status(200).send({ success: true, message: '', result })
@@ -9,7 +9,7 @@ export async function getGames (req, res) {
   }
 }
 
-export async function create (req, res) {
+export const create = async (req, res) => {
   try {
     for (const key in req.body) {
       if (key.includes('List') || key === 'playerRange') {
@@ -31,25 +31,33 @@ export async function create (req, res) {
   }
 }
 
-export async function getUserMadeGames (req, res) {
+export const getUserMadeGames = async (req, res) => {
   try {
-    const result = await games.find({ author: req.user._id }, 'name image')
+    const result = await games.find({ author: req.user._id }, 'name image').sort({ _id: -1 }).limit(10).skip(10 * (req.query.page - 1))
     res.status(200).send({ success: true, message: '', result })
   } catch (error) {
     res.status(500).send({ success: true, message: '伺服器錯誤' })
   }
 }
 
-export async function getOneGame (req, res) {
+export const getGameById = async (req, res) => {
   try {
-    const result = await games.findOne({ _id: req.body.gameId })
-    res.status(200).send({ success: true, message: '', result })
+    const result = await games.findById(req.params.id)
+    if (result) {
+      res.status(200).send({ success: true, message: '', result })
+    } else {
+      res.status(404).send({ success: true, message: '找不到桌遊' })
+    }
   } catch (error) {
-    res.status(500).send({ success: false, message: '伺服器錯誤' })
+    if (error.name === 'CastError') {
+      res.status(404).send({ success: true, message: '找不到桌遊' })
+    } else {
+      res.status(500).send({ success: false, message: '伺服器錯誤' })
+    }
   }
 }
 
-export async function updateOneGame (req, res) {
+export const updateOneGame = async (req, res) => {
   try {
     const game = await games.findById(req.body._id)
     if (game.author.toString() !== req.user._id.toString()) throw new Error('author edit only')
@@ -71,5 +79,14 @@ export async function updateOneGame (req, res) {
     if (error.message === 'author edit only') {
       res.status(400).send({ success: false, message: '只有作者可以修改' })
     }
+  }
+}
+
+export const deleteGameById = async (req, res) => {
+  try {
+    await games.findByIdAndDelete(req.params.id)
+    res.status(200).send({ success: true, message: '' })
+  } catch (error) {
+    res.status(404).send({ success: false, message: '找不到桌遊' })
   }
 }

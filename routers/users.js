@@ -8,6 +8,8 @@ import {
   updateAvatar,
   editPassword,
   getUserBy,
+  resetUserPassword,
+  deleteUser,
   getInfo,
   addFavGame,
   removeFavGame
@@ -19,21 +21,24 @@ import auth from '../middleware/auth.js'
 import upload from '../middleware/upload.js'
 import isAdmin from '../middleware/isAdmin.js'
 
-const router = new express.Router()
+const Router = new express.Router()
 
-router.post('/register', content('application/json'), register)
-router.post('/login', login)
-router.post('/extend', auth, extend)
-router.get('/getInfo', auth, getInfo)
-router.delete('/logout', auth, logout)
+Router.post('/register', content('application/json'), register)
+Router.post('/login', login)
+Router.post('/extend', auth, extend)
+Router.get('/getInfo', auth, getInfo)
+Router.delete('/logout', auth, logout)
 
-router.patch('/editInfo', auth, content('multipart/form-data'), upload, editInfo)
-router.get('/updateAvatar', auth, updateAvatar)
-router.patch('/editPassword', editPassword)
-router.get('/getUserByAccount', auth, isAdmin, getUserBy('account'))
-router.get('/getUserById', auth, isAdmin, getUserBy('_id'))
+Router.patch('/editInfo', auth, content('multipart/form-data'), upload, editInfo)
+Router.get('/updateAvatar', auth, updateAvatar)
+Router.patch('/editPassword', editPassword)
 
-router.post('/addFavGame/:gameId', auth, addFavGame)
-router.post('/removeFavGame/:gameId', auth, removeFavGame)
+Router.get('/getUserByAccount', auth, isAdmin, getUserBy('account'))
+Router.get('/getUserById', auth, isAdmin, getUserBy('_id'))
+Router.patch('/resetUserPassword', auth, isAdmin, resetUserPassword)
+Router.delete('/deleteUser/:id', auth, isAdmin, deleteUser)
 
-export default router
+Router.post('/addFavGame/:gameId', auth, addFavGame)
+Router.post('/removeFavGame/:gameId', auth, removeFavGame)
+
+export default Router

@@ -132,6 +132,26 @@ export const getUserBy = (type) => {
   }
 }
 
+export const resetUserPassword = async (req, res) => {
+  try {
+    const user = await users.findById({ _id: req.body.userId })
+    user.password = '0000'
+    await user.save()
+    res.status(200).send({ success: true, message: '' })
+  } catch (error) {
+    res.status(500).send({ success: false, message: '伺服器錯誤' })
+  }
+}
+
+export const deleteUser = async (req, res) => {
+  try {
+    await users.findByIdAndDelete({ _id: req.params.id })
+    res.status(200).send({ success: true, message: '' })
+  } catch (error) {
+    res.status(500).send({ success: false, message: '伺服器錯誤' })
+  }
+}
+
 export const getInfo = async (req, res) => {
   try {
     const result = req.user.toObject()
