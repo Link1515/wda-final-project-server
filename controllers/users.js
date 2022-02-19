@@ -102,10 +102,9 @@ export const updateAvatar = (req, res) => {
   res.status(200).send({ success: true, message: '', result: req.user.avatar })
 }
 
-export const editpassword = async (req, res) => {
+export const editPassword = async (req, res) => {
   try {
     const user = await users.findOne({ account: req.body.account, password: md5(req.body.oldPassword) })
-    console.log(user)
     if (user) {
       user.password = req.body.newPassword
       await user.save()
@@ -114,8 +113,22 @@ export const editpassword = async (req, res) => {
       res.status(404).send({ success: true, message: '原密碼錯誤' })
     }
   } catch (error) {
-    console.log(error)
     res.status(500).send({ success: false, message: '伺服器錯誤' })
+  }
+}
+
+export const getUserBy = (type) => {
+  return async (req, res) => {
+    try {
+      const result = await users.findOne({ [type]: req.query.searchStr }, '-password -favoriteGame -nickname -role -tokens')
+      if (result) {
+        res.status(200).send({ success: true, message: '', result })
+      } else {
+        res.status(404).send({ success: false, message: '查無用戶' })
+      }
+    } catch (error) {
+      res.status(500).send({ success: false, message: '伺服器錯誤' })
+    }
   }
 }
 
