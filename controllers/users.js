@@ -1,6 +1,7 @@
 import md5 from 'md5'
 import jwt from 'jsonwebtoken'
 import users from '../models/users.js'
+import games from '../models/games.js'
 
 export const register = async (req, res) => {
   try {
@@ -166,9 +167,9 @@ export const addFavGame = async (req, res) => {
   try {
     req.user.favoriteGame.push({ game: req.params.gameId, name: req.body.gameName })
     await req.user.save()
+    await games.findByIdAndUpdate(req.params.gameId, { $inc: { likes: 1 } })
     res.status(200).send({ success: true, message: '', result: req.user.favoriteGame })
   } catch (error) {
-    console.log(error)
     res.status(500).send({ success: false, message: '伺服器錯誤' })
   }
 }
@@ -177,6 +178,7 @@ export const removeFavGame = async (req, res) => {
   try {
     req.user.favoriteGame = req.user.favoriteGame.filter(fav => fav.game.toString() !== req.params.gameId.toString())
     await req.user.save()
+    await games.findByIdAndUpdate(req.params.gameId, { $inc: { likes: -1 } })
     res.status(200).send({ success: true, message: '', result: req.user.favoriteGame })
   } catch (error) {
     res.status(500).send({ success: false, message: '伺服器錯誤' })

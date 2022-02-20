@@ -23,6 +23,10 @@ const gameSchema = new mongoose.Schema({
   voiceType: {
     type: String,
     default: 'Google 國語'
+  },
+  likes: {
+    type: Number,
+    default: 0
   }
 }, { versionKey: false })
 
