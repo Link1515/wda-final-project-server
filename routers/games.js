@@ -4,6 +4,7 @@ import {
   create,
   getUserMadeGames,
   getGameById,
+  getGameByName,
   updateOneGame,
   deleteGameById
 } from '../controllers/games.js'
@@ -19,6 +20,7 @@ Router.get('/', getGames)
 Router.post('/create', content('multipart/form-data'), auth, upload, create)
 Router.get('/getUserMadeGames', auth, getUserMadeGames)
 Router.get('/getGameById/:id', getGameById)
+Router.get('/getGameByName/:searchText', getGameByName)
 Router.patch('/update', content('multipart/form-data'), auth, upload, updateOneGame)
 Router.delete('/deleteGameById/:id', auth, isAdmin, deleteGameById)
 

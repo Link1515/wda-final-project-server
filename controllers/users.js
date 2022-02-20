@@ -182,3 +182,11 @@ export const removeFavGame = async (req, res) => {
     res.status(500).send({ success: false, message: '伺服器錯誤' })
   }
 }
+
+export const refreshFavGame = async (req, res) => {
+  try {
+    res.status(200).send({ success: true, message: '', result: req.user.favoriteGame })
+  } catch (error) {
+    res.status(500).send({ success: false, message: '伺服器錯誤' })
+  }
+}

@@ -1,4 +1,5 @@
 import games from '../models/games.js'
+import users from '../models/users.js'
 
 export const getGames = async (req, res) => {
   try {
@@ -57,6 +58,20 @@ export const getGameById = async (req, res) => {
   }
 }
 
+export const getGameByName = async (req, res) => {
+  try {
+    const searchText = new RegExp(req.params.searchText)
+    const result = await games.find({ name: searchText })
+    if (result.length > 0) {
+      res.status(200).send({ success: true, message: '', result })
+    } else {
+      res.status(404).send({ success: false, message: '找不到符合的桌遊' })
+    }
+  } catch (error) {
+    res.status(500).send({ success: false, message: '伺服器錯誤' })
+  }
+}
+
 export const updateOneGame = async (req, res) => {
   try {
     const game = await games.findById(req.body._id)
@@ -85,6 +100,12 @@ export const updateOneGame = async (req, res) => {
 export const deleteGameById = async (req, res) => {
   try {
     await games.findByIdAndDelete(req.params.id)
+    await users.updateMany({ 'favoriteGame.game': req.params.id },
+      {
+        $pull: {
+          favoriteGame: { game: req.params.id }
+        }
+      })
     res.status(200).send({ success: true, message: '' })
   } catch (error) {
     res.status(404).send({ success: false, message: '找不到桌遊' })

@@ -12,7 +12,8 @@ import {
   deleteUser,
   getInfo,
   addFavGame,
-  removeFavGame
+  removeFavGame,
+  refreshFavGame
 } from '../controllers/users.js'
 
 // middleware
@@ -40,5 +41,6 @@ Router.delete('/deleteUser/:id', auth, isAdmin, deleteUser)
 
 Router.post('/addFavGame/:gameId', auth, addFavGame)
 Router.post('/removeFavGame/:gameId', auth, removeFavGame)
+Router.get('/refreshFavGame', auth, refreshFavGame)
 
 export default Router
