@@ -107,6 +107,12 @@ export default (io) => {
 
     socket.on('backToSetting', () => {
       io.to(socket.currentRoom.roomId).emit('backToSetting')
+      socket.currentRoom.playerList.forEach(player => {
+        player.ready = false
+        player.camp = ''
+        player.campRoleId = ''
+      })
+      io.to(socket.currentRoom.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.currentRoom.roomId).size, playerList: socket.currentRoom.playerList })
     })
 
     // 流程開始
