@@ -28,6 +28,7 @@ export default (io) => {
         playerAmount,
         gameId,
         gameInfo,
+        stepIndex: -1,
         gameStep: 0,
         shownPlayers: [],
         markedPlayers: [],
@@ -109,9 +110,10 @@ export default (io) => {
     })
 
     // 流程開始
-    socket.on('startStep', () => {
+    socket.on('startStep', (stepIndex) => {
       socket.currentRoom.gameStep = 0
-      io.to(socket.currentRoom.roomId).emit('runStep', socket.currentRoom.gameStep)
+      socket.currentRoom.stepIndex = stepIndex
+      io.to(socket.currentRoom.roomId).emit('runStep', { stepIndex, gameStep: socket.currentRoom.gameStep })
     })
 
     socket.on('stepDone', () => {
@@ -131,14 +133,14 @@ export default (io) => {
           player.stepDone = false
         }
 
-        if (socket.currentRoom.gameStep === socket.currentRoom.gameInfo.stepList.length) {
+        if (socket.currentRoom.gameStep === socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules.length) {
           socket.currentRoom.gameStep = -1
           io.to(socket.currentRoom.roomId).emit('showMarkedResult', socket.currentRoom.markedResult)
           io.to(socket.currentRoom.roomId).emit('resetStep')
           socket.currentRoom.markedResult = []
           socket.currentRoom.shownPlayers = []
         } else {
-          if (socket.currentRoom.gameInfo.stepList[socket.currentRoom.gameStep].mode === '標記') {
+          if (socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep].mode === '標記') {
             const result = {}
             if (socket.currentRoom.markedPlayers.length) {
               const randomIndex = Math.round(Math.random() * (socket.currentRoom.markedPlayers.length - 1))
@@ -152,14 +154,14 @@ export default (io) => {
               result.avatar = socket.currentRoom.shownPlayers[randomIndex].avatar
             }
 
-            socket.currentRoom.markedResult.push({ player: result, markLabel: socket.currentRoom.gameInfo.stepList[socket.currentRoom.gameStep].data.label })
+            socket.currentRoom.markedResult.push({ player: result, markLabel: socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep].data.label })
 
             socket.currentRoom.markedPlayers = []
             io.emit('updateMarkedPlayers', socket.currentRoom.markedPlayers)
           }
 
           socket.currentRoom.gameStep++
-          io.to(socket.currentRoom.roomId).emit('runStep', socket.currentRoom.gameStep)
+          io.to(socket.currentRoom.roomId).emit('runStep', { gameStep: socket.currentRoom.gameStep })
         }
       }
     })
