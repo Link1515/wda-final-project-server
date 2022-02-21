@@ -13,7 +13,9 @@ export default async (req, res, next) => {
         jwt.verify(token, process.env.SECRET)
         next()
       } else {
-        throw new Error('JWT 已不存在')
+        const error = new Error('JWT 已不存在')
+        error.name = 'JWT_NOT_ESIST'
+        throw error
       }
     } else {
       throw new Error('未傳入 JWT')
@@ -21,6 +23,8 @@ export default async (req, res, next) => {
   } catch (error) {
     if (error.name === 'TokenExpiredError' && req.baseUrl === '/users' && req.path === '/extend') {
       next()
+    } else if (error.name === 'JWT_NOT_ESIST') {
+      res.status(400).send({ success: false, message: '請重新登入' })
     } else {
       res.status(401).send({ success: false, message: '驗證錯誤' })
     }
