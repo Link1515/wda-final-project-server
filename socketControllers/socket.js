@@ -21,7 +21,8 @@ export default (io) => {
         name: playerName,
         avatar,
         ready: false,
-        stepDone: false
+        stepDone: false,
+        eliminated: false
       }
       activeRooms.push({
         roomId,
@@ -78,7 +79,8 @@ export default (io) => {
         name: playerName,
         avatar,
         ready: false,
-        stepDone: false
+        stepDone: false,
+        eliminated: false
       })
       socket.playerInfo = socket.currentRoom.playerList.at(-1)
       socket.join(roomId)
