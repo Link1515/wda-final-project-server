@@ -6,8 +6,6 @@ let activeRooms = []
 
 export default (io) => {
   return (socket) => {
-    console.log('連線' + socket.id)
-
     socket.on('createRoom', async ({ playerId, playerName, avatar, playerAmount, gameId }) => {
       const roomId = nanoid()
 
@@ -22,7 +20,7 @@ export default (io) => {
         avatar,
         ready: false,
         stepDone: false,
-        eliminated: false
+        alive: true
       }
       activeRooms.push({
         roomId,
@@ -80,7 +78,7 @@ export default (io) => {
         avatar,
         ready: false,
         stepDone: false,
-        eliminated: false
+        alive: true
       })
       socket.playerInfo = socket.currentRoom.playerList.at(-1)
       socket.join(roomId)
@@ -99,6 +97,16 @@ export default (io) => {
           socket.playerInfo.funRoleId = funRoleId
         }
       }
+
+      io.to(socket.currentRoom.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.currentRoom.roomId).size, playerList: socket.currentRoom.playerList })
+    })
+
+    socket.on('eliminatePlayer', (localPlayerList) => {
+      socket.currentRoom.playerList.forEach(player => {
+        localPlayerList.forEach(localPlayer => {
+          player.alive = localPlayer.alive
+        })
+      })
 
       io.to(socket.currentRoom.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.currentRoom.roomId).size, playerList: socket.currentRoom.playerList })
     })
@@ -202,8 +210,6 @@ export default (io) => {
           activeRooms = activeRooms.filter(room => room.roomId !== socket.currentRoom.roomId)
         }
       }
-
-      console.log('斷線')
     })
   }
 }
