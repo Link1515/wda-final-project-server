@@ -23,6 +23,7 @@ export default (io) => {
         alive: true
       }
       activeRooms.push({
+        startState: false,
         roomId,
         playerAmount,
         gameId,
@@ -112,7 +113,8 @@ export default (io) => {
     })
 
     socket.on('start', () => {
-      io.to(socket.currentRoom.roomId).emit('start')
+      socket.currentRoom.startState = true
+      io.to(socket.currentRoom.roomId).emit('start', socket.currentRoom.startState)
     })
 
     socket.on('backToSetting', () => {
