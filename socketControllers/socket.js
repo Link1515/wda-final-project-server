@@ -105,7 +105,9 @@ export default (io) => {
     socket.on('eliminatePlayer', (localPlayerList) => {
       socket.currentRoom.playerList.forEach(player => {
         localPlayerList.forEach(localPlayer => {
-          player.alive = localPlayer.alive
+          if (player.socketId === localPlayer.socketId) {
+            player.alive = localPlayer.alive
+          }
         })
       })
 
