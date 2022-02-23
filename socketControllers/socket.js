@@ -136,7 +136,7 @@ export default (io) => {
       io.to(socket.currentRoom.roomId).emit('runStep', { stepIndex, gameStep: socket.currentRoom.gameStep })
     })
 
-    socket.on('stepDone', () => {
+    socket.on('stepDone', (markState) => {
       if (socket.currentRoom.gameStep < 0) return
 
       socket.playerInfo.stepDone = true
@@ -160,7 +160,7 @@ export default (io) => {
           socket.currentRoom.markedResult = []
           socket.currentRoom.shownPlayers = []
         } else {
-          if (socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep].mode === '標記') {
+          if (socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep].mode === '標記' && markState) {
             const result = {}
             if (socket.currentRoom.markedPlayers.length) {
               const randomIndex = Math.round(Math.random() * (socket.currentRoom.markedPlayers.length - 1))
