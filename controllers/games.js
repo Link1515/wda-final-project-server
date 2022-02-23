@@ -83,8 +83,8 @@ export const updateOneGame = async (req, res) => {
       }
     }
 
-    if (!req.body.image) {
-      delete req.body.image
+    if (req.file) {
+      req.body.image = req.file.path
     }
 
     await games.findByIdAndUpdate(req.body._id, req.body, { runValidators: true })
