@@ -33,6 +33,7 @@ export default (io) => {
         shownPlayers: [],
         markedPlayers: [],
         markedResult: [],
+        skipInc: [-1, -1],
         playerList: [creatorInfo]
       })
       socket.currentRoom = activeRooms.at(-1)
@@ -153,7 +154,7 @@ export default (io) => {
           player.stepDone = false
         }
 
-        if (socket.currentRoom.gameStep === socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules.length) {
+        if (socket.currentRoom.gameStep >= socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules.length) {
           socket.currentRoom.gameStep = -1
           io.to(socket.currentRoom.roomId).emit('showMarkedResult', socket.currentRoom.markedResult)
           io.to(socket.currentRoom.roomId).emit('resetStep')
@@ -180,7 +181,15 @@ export default (io) => {
             io.emit('updateMarkedPlayers', socket.currentRoom.markedPlayers)
           }
 
-          socket.currentRoom.gameStep++
+          if (socket.currentRoom.skipInc[0] >= 0) {
+            socket.currentRoom.gameStep += socket.currentRoom.skipInc[0]
+            socket.currentRoom.skipInc[0] = -1
+          } else if (socket.currentRoom.skipInc[1] >= 0) {
+            socket.currentRoom.gameStep += socket.currentRoom.skipInc[1]
+            socket.currentRoom.skipInc[1] = -1
+          } else {
+            socket.currentRoom.gameStep++
+          }
           io.to(socket.currentRoom.roomId).emit('runStep', { gameStep: socket.currentRoom.gameStep })
         }
       }
@@ -199,6 +208,11 @@ export default (io) => {
 
     socket.on('updateShownPlayers', (shownPlayers) => {
       socket.currentRoom.shownPlayers = shownPlayers
+    })
+
+    socket.on('updateSkipInc', ({ skipInc, skipLength }) => {
+      socket.currentRoom.skipInc[0] = skipInc
+      socket.currentRoom.skipInc[1] = skipLength + 1 - skipInc
     })
 
     socket.on('disconnect', () => {
