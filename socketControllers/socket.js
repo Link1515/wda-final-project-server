@@ -162,20 +162,20 @@ export default (io) => {
           socket.currentRoom.shownPlayers = []
         } else {
           if (socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep].mode === '標記' && markState) {
-            const result = {}
+            let name, avatar
             if (socket.currentRoom.markedPlayers.length) {
               const randomIndex = Math.round(Math.random() * (socket.currentRoom.markedPlayers.length - 1))
               const targetPlyerSocketId = socket.currentRoom.markedPlayers[randomIndex]
               const targetPlayer = socket.currentRoom.playerList.filter(player => player.socketId === targetPlyerSocketId)[0]
-              result.name = targetPlayer.name
-              result.avatar = targetPlayer.avatar
+              name = targetPlayer.name
+              avatar = targetPlayer.avatar
             } else {
               const randomIndex = Math.round(Math.random() * (socket.currentRoom.shownPlayers.length - 1))
-              result.name = socket.currentRoom.shownPlayers[randomIndex].name
-              result.avatar = socket.currentRoom.shownPlayers[randomIndex].avatar
+              name = socket.currentRoom.shownPlayers[randomIndex].name
+              avatar = socket.currentRoom.shownPlayers[randomIndex].avatar
             }
 
-            socket.currentRoom.markedResult.push({ player: result, markLabel: socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep].data.label })
+            socket.currentRoom.markedResult.push({ name, avatar, markLabel: socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep].data.label })
 
             socket.currentRoom.markedPlayers = []
             io.emit('updateMarkedPlayers', socket.currentRoom.markedPlayers)
@@ -190,6 +190,11 @@ export default (io) => {
           } else {
             socket.currentRoom.gameStep++
           }
+
+          if (socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep]?.mode === '顯示' && socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep]?.data.roleListType === 'labelResult') {
+            io.to(socket.currentRoom.roomId).emit('updateMarkedResult', socket.currentRoom.markedResult)
+          }
+
           io.to(socket.currentRoom.roomId).emit('runStep', { gameStep: socket.currentRoom.gameStep })
         }
       }
