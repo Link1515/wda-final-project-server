@@ -39,7 +39,7 @@ export default (io) => {
       socket.currentRoom = activeRooms.at(-1)
       socket.playerInfo = socket.currentRoom.playerList[0]
 
-      socket.emit('joinRoomSuccess', { roomId, gameInfo, playerAmount })
+      socket.emit('joinRoomSuccess', { roomId, gameInfo, playerAmount, socketId: socket.id })
       socket.emit('updateRoomData', { joinedPlayerAmount: 1, playerList: [creatorInfo] })
     })
 
@@ -85,7 +85,7 @@ export default (io) => {
       socket.playerInfo = socket.currentRoom.playerList.at(-1)
       socket.join(roomId)
 
-      socket.emit('joinRoomSuccess', { roomId, gameInfo: socket.currentRoom.gameInfo, playerAmount })
+      socket.emit('joinRoomSuccess', { roomId, gameInfo: socket.currentRoom.gameInfo, playerAmount, socketId: socket.id })
       io.to(roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(roomId).size, playerList: socket.currentRoom.playerList })
       socket.to(roomId).emit('roomAnnouncement', `${playerName} 加入遊戲間`)
     })
