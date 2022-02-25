@@ -51,6 +51,10 @@ app.use((_, req, res, next) => {
   res.status(400).send({ success: false, message: '格式錯誤' })
 })
 
+app.get('/checkServer', (req, res) => {
+  res.status(200).send({ success: true, message: '', result: { serverOn: true } })
+})
+
 app.use('/users', userRouter)
 app.use('/games', gameRouter)
 app.use('/reports', reportRouter)
