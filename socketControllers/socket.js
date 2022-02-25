@@ -215,9 +215,8 @@ export default (io) => {
       socket.currentRoom.shownPlayers = shownPlayers
     })
 
-    socket.on('updateSkipInc', ({ skipInc, skipLength }) => {
-      socket.currentRoom.skipInc[0] = skipInc
-      socket.currentRoom.skipInc[1] = skipLength + 1 - skipInc
+    socket.on('updateSkipInc', (skipInc) => {
+      socket.currentRoom.skipInc = skipInc
     })
 
     socket.on('disconnect', () => {
