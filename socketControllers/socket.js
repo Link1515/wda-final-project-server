@@ -91,119 +91,147 @@ export default (io) => {
     })
 
     socket.on('toggleReady', ({ camp, campRoleId, funRoleId }) => {
-      socket.playerInfo.ready = !socket.playerInfo.ready
-      if (socket.playerInfo.ready) {
-        socket.playerInfo.camp = camp
-        socket.playerInfo.campRoleId = campRoleId
-        if (socket.currentRoom.gameInfo.enableFunRole) {
-          socket.playerInfo.funRoleId = funRoleId
+      try {
+        socket.playerInfo.ready = !socket.playerInfo.ready
+        if (socket.playerInfo.ready) {
+          socket.playerInfo.camp = camp
+          socket.playerInfo.campRoleId = campRoleId
+          if (socket.currentRoom.gameInfo.enableFunRole) {
+            socket.playerInfo.funRoleId = funRoleId
+          }
         }
-      }
 
-      io.to(socket.currentRoom.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.currentRoom.roomId).size, playerList: socket.currentRoom.playerList })
+        io.to(socket.currentRoom.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.currentRoom.roomId).size, playerList: socket.currentRoom.playerList })
+      } catch (error) {
+        socket.emit('refresh')
+      }
     })
 
     socket.on('eliminatePlayer', (localPlayerList) => {
-      socket.currentRoom.playerList.forEach(player => {
-        localPlayerList.forEach(localPlayer => {
-          if (player.socketId === localPlayer.socketId) {
-            player.alive = localPlayer.alive
-          }
+      try {
+        socket.currentRoom.playerList.forEach(player => {
+          localPlayerList.forEach(localPlayer => {
+            if (player.socketId === localPlayer.socketId) {
+              player.alive = localPlayer.alive
+            }
+          })
         })
-      })
 
-      io.to(socket.currentRoom.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.currentRoom.roomId).size, playerList: socket.currentRoom.playerList })
+        io.to(socket.currentRoom.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.currentRoom.roomId).size, playerList: socket.currentRoom.playerList })
+      } catch (error) {
+        console.log(error)
+      }
     })
 
     socket.on('start', () => {
-      socket.currentRoom.startState = true
-      io.to(socket.currentRoom.roomId).emit('start', socket.currentRoom.startState)
+      try {
+        socket.currentRoom.startState = true
+        io.to(socket.currentRoom.roomId).emit('start', socket.currentRoom.startState)
+      } catch (error) {
+        console.log(error)
+      }
     })
 
     socket.on('backToSetting', () => {
-      io.to(socket.currentRoom.roomId).emit('backToSetting')
-      socket.currentRoom.playerList.forEach(player => {
-        player.ready = false
-        player.camp = ''
-        player.campRoleId = ''
-      })
-      io.to(socket.currentRoom.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.currentRoom.roomId).size, playerList: socket.currentRoom.playerList })
+      try {
+        io.to(socket.currentRoom.roomId).emit('backToSetting')
+        socket.currentRoom.playerList.forEach(player => {
+          player.ready = false
+          player.camp = ''
+          player.campRoleId = ''
+        })
+        io.to(socket.currentRoom.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.currentRoom.roomId).size, playerList: socket.currentRoom.playerList })
+      } catch (error) {
+
+      }
     })
 
     // 流程開始
     socket.on('startStep', (stepIndex) => {
-      socket.currentRoom.gameStep = 0
-      socket.currentRoom.stepIndex = stepIndex
-      io.to(socket.currentRoom.roomId).emit('runStep', { stepIndex, gameStep: socket.currentRoom.gameStep })
+      try {
+        socket.currentRoom.gameStep = 0
+        socket.currentRoom.stepIndex = stepIndex
+        io.to(socket.currentRoom.roomId).emit('runStep', { stepIndex, gameStep: socket.currentRoom.gameStep })
+      } catch (error) {
+
+      }
     })
 
     socket.on('stepDone', (markState) => {
-      if (socket.currentRoom.gameStep < 0) return
+      try {
+        if (socket.currentRoom.gameStep < 0) return
 
-      socket.playerInfo.stepDone = true
-      let allPlayerStepDone = true
-      for (const player of socket.currentRoom.playerList) {
-        if (!player.stepDone) {
-          allPlayerStepDone = false
-          break
-        }
-      }
-
-      if (allPlayerStepDone) {
+        socket.playerInfo.stepDone = true
+        let allPlayerStepDone = true
         for (const player of socket.currentRoom.playerList) {
-          player.stepDone = false
+          if (!player.stepDone) {
+            allPlayerStepDone = false
+            break
+          }
         }
 
-        if (socket.currentRoom.gameStep >= socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules.length) {
-          socket.currentRoom.gameStep = -1
-          io.to(socket.currentRoom.roomId).emit('showMarkedResult', socket.currentRoom.markedResult)
-          io.to(socket.currentRoom.roomId).emit('resetStep')
-          socket.currentRoom.markedResult = []
-          socket.currentRoom.shownPlayers = []
-        } else {
-          if (socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep].mode === '標記' && markState) {
-            let name, avatar
-            if (socket.currentRoom.markedPlayers.length) {
-              const randomIndex = Math.round(Math.random() * (socket.currentRoom.markedPlayers.length - 1))
-              const targetPlyerSocketId = socket.currentRoom.markedPlayers[randomIndex]
-              const targetPlayer = socket.currentRoom.playerList.filter(player => player.socketId === targetPlyerSocketId)[0]
-              name = targetPlayer.name
-              avatar = targetPlayer.avatar
-            } else {
-              const randomIndex = Math.round(Math.random() * (socket.currentRoom.shownPlayers.length - 1))
-              name = socket.currentRoom.shownPlayers[randomIndex].name
-              avatar = socket.currentRoom.shownPlayers[randomIndex].avatar
+        if (allPlayerStepDone) {
+          for (const player of socket.currentRoom.playerList) {
+            player.stepDone = false
+          }
+
+          if (socket.currentRoom.gameStep >= socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules.length) {
+            socket.currentRoom.gameStep = -1
+            io.to(socket.currentRoom.roomId).emit('showMarkedResult', socket.currentRoom.markedResult)
+            io.to(socket.currentRoom.roomId).emit('resetStep')
+            socket.currentRoom.markedResult = []
+            socket.currentRoom.shownPlayers = []
+          } else {
+            if (socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep].mode === '標記' && markState) {
+              let name, avatar
+              if (socket.currentRoom.markedPlayers.length) {
+                const randomIndex = Math.round(Math.random() * (socket.currentRoom.markedPlayers.length - 1))
+                const targetPlyerSocketId = socket.currentRoom.markedPlayers[randomIndex]
+                const targetPlayer = socket.currentRoom.playerList.filter(player => player.socketId === targetPlyerSocketId)[0]
+                name = targetPlayer.name
+                avatar = targetPlayer.avatar
+              } else {
+                const randomIndex = Math.round(Math.random() * (socket.currentRoom.shownPlayers.length - 1))
+                name = socket.currentRoom.shownPlayers[randomIndex].name
+                avatar = socket.currentRoom.shownPlayers[randomIndex].avatar
+              }
+
+              socket.currentRoom.markedResult.push({ name, avatar, markLabel: socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep].data.label })
+
+              socket.currentRoom.markedPlayers = []
+              io.emit('updateMarkedPlayers', socket.currentRoom.markedPlayers)
             }
 
-            socket.currentRoom.markedResult.push({ name, avatar, markLabel: socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep].data.label })
+            if (socket.currentRoom.skipInc[0] >= 0) {
+              socket.currentRoom.gameStep += socket.currentRoom.skipInc[0]
+              socket.currentRoom.skipInc[0] = -1
+            } else if (socket.currentRoom.skipInc[1] >= 0) {
+              socket.currentRoom.gameStep += socket.currentRoom.skipInc[1]
+              socket.currentRoom.skipInc[1] = -1
+            } else {
+              socket.currentRoom.gameStep++
+            }
 
-            socket.currentRoom.markedPlayers = []
-            io.emit('updateMarkedPlayers', socket.currentRoom.markedPlayers)
+            if (socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep]?.mode === '顯示' && socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep]?.data.roleListType === 'labelResult') {
+              io.to(socket.currentRoom.roomId).emit('updateMarkedResult', socket.currentRoom.markedResult)
+            }
+
+            io.to(socket.currentRoom.roomId).emit('runStep', { gameStep: socket.currentRoom.gameStep })
           }
-
-          if (socket.currentRoom.skipInc[0] >= 0) {
-            socket.currentRoom.gameStep += socket.currentRoom.skipInc[0]
-            socket.currentRoom.skipInc[0] = -1
-          } else if (socket.currentRoom.skipInc[1] >= 0) {
-            socket.currentRoom.gameStep += socket.currentRoom.skipInc[1]
-            socket.currentRoom.skipInc[1] = -1
-          } else {
-            socket.currentRoom.gameStep++
-          }
-
-          if (socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep]?.mode === '顯示' && socket.currentRoom.gameInfo.stepList[socket.currentRoom.stepIndex].rules[socket.currentRoom.gameStep]?.data.roleListType === 'labelResult') {
-            io.to(socket.currentRoom.roomId).emit('updateMarkedResult', socket.currentRoom.markedResult)
-          }
-
-          io.to(socket.currentRoom.roomId).emit('runStep', { gameStep: socket.currentRoom.gameStep })
         }
+      } catch (error) {
+
       }
     })
 
     socket.on('resetStep', () => {
-      socket.currentRoom.gameStep = -1
-      socket.currentRoom.markedResult = []
-      io.to(socket.currentRoom.roomId).emit('resetStep')
+      try {
+        socket.currentRoom.gameStep = -1
+        socket.currentRoom.markedResult = []
+        io.to(socket.currentRoom.roomId).emit('resetStep')
+      } catch (error) {
+
+      }
     })
 
     socket.on('updateMarkedPlayers', (markedPlayers) => {
