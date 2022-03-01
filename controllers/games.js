@@ -3,7 +3,7 @@ import users from '../models/users.js'
 
 export const getGames = async (req, res) => {
   try {
-    const result = await games.find({}, 'name image likes').sort({ likes: -1 }).limit(5).skip(5 * (req.query.page - 1))
+    const result = await games.find({}, 'name image likes').sort({ likes: -1, _id: -1 }).skip(5 * (req.query.page - 1)).limit(5)
     res.status(200).send({ success: true, message: '', result })
   } catch (error) {
     res.status(500).send({ success: false, message: '伺服器錯誤' })
