@@ -90,6 +90,15 @@ export default (io) => {
       socket.to(roomId).emit('roomAnnouncement', `${playerName} 加入遊戲間`)
     })
 
+    socket.on('excludePlayer', (socketId) => {
+      try {
+        console.log(socketId)
+        io.to(socket.currentRoom.roomId).emit('excludePlayer', socketId)
+      } catch (error) {
+        console.log(error)
+      }
+    })
+
     socket.on('toggleReady', ({ camp, campRoleId, funRoleId }) => {
       try {
         socket.playerInfo.ready = !socket.playerInfo.ready
