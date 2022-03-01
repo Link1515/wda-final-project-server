@@ -92,7 +92,6 @@ export default (io) => {
 
     socket.on('excludePlayer', (socketId) => {
       try {
-        console.log(socketId)
         io.to(socket.currentRoom.roomId).emit('excludePlayer', socketId)
       } catch (error) {
         console.log(error)
