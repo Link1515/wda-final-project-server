@@ -260,7 +260,7 @@ export default (io) => {
         socket.currentRoom.playerList = socket.currentRoom.playerList.filter(player => player.socketId !== socket.id)
 
         if (io.sockets.adapter.rooms.get(socket.currentRoom.roomId)) {
-          if (socket.playerInfo.role === 1) {
+          if (socket.playerInfo && socket.playerInfo.role === 1) {
             socket.currentRoom.playerList[0].role = 1
           }
           io.to(socket.currentRoom.roomId).emit('updateRoomData', { joinedPlayerAmount: io.sockets.adapter.rooms.get(socket.currentRoom.roomId).size, playerList: socket.currentRoom.playerList })
